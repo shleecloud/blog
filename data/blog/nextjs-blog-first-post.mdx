@@ -1,0 +1,63 @@
+---
+title: NextJS 블로그 첫 글
+date: '2023-11-06'
+tags: ['diary', 'blog']
+draft: false
+summary: 마침 `NextJS` 템플릿이 흥미로웠고 나만의 블로그를 만들고 싶다는 동기가 확 올라왔을 때 사이트를 만들었다.
+images: []
+---
+## 들어가며
+[`Velog`](https://velog.io/@shleecloud)에서 `NextJS` 개인 블로그로 이사했다. 올해 목표 중 하나가 플랫폼을 벗어난 블로그를 운영하는 것이다. 이직 준비를 할 때부터 블로그 이사를 하고 싶었다.
+마침 듣고 있던 강의가 거의 끝나서 가볍게 셋팅해봤다. 막상 시작하니 금방 끝나서 허무하다. 첫 느낌은 글세.. 잘 사용할 수 있을까 조금 의문이 들면서도 설래는 기분이다.
+
+## 왜 이사했는가?
+`Velog`도 나쁘지 않았다. 깔끔한 디자인에 커스텀 할 요소가 적은게 오히려 글에 집중할 수 있었다. 그럼에도 옮겨야 겠다고 생각했던 느꼈던 단점은
+* 전체 게시글 통계 조회가 안되고
+* 개인이 운영하는 사이트라 언제 날아갈지 모르고
+* 업데이트가 느리다
+
+마침 `NextJS` 템플릿이 흥미로웠고 나만의 블로그를 만들고 싶다는 동기가 확 올라왔을 때 사이트를 만들었다.
+
+## 장점
+### BestCase 엿보기
+`NextJS`의 모범 사례를 보는 것 같다.
+OpenGraph 설정이라던가. `SEO`, `RSS` 활용 부분도 `NextJS13`의 `MetadataRoute.Robots` 또는 `MetadataRoute.Sitemap` 으로 구현하는 부분에서 필요로 하는 파라미터를 `genPageMetadata` 함수에서 만들어주는 부분 이라던가.
+
+아참! `LightHouse` 점수도 100점이 나온다.
+
+```js
+export function genPageMetadata({ title, description, image, ...rest }: PageSEOProps): Metadata {
+  return {
+    title,
+    openGraph: {
+      title: `${title} | ${siteMetadata.title}`,
+      description: description || siteMetadata.description,
+      url: './',
+      siteName: siteMetadata.title,
+      images: image ? [image] : [siteMetadata.socialBanner],
+      locale: 'en_US',
+      type: 'website',
+    },
+    twitter: {
+      title: `${title} | ${siteMetadata.title}`,
+      card: 'summary_large_image',
+      images: image ? [image] : [siteMetadata.socialBanner],
+    },
+    ...rest,
+  }
+}
+```
+
+### 내가 관리하는 데이터
+내가 쓴 글을 온전히 내가 가지고 있다는 안정감이 든다. 언제든 옮길 수 있고 바꿀 수 있다.
+
+커스터마이징도 JS 기반이라서 자유롭게 할 수 있다. 예전에 `Jekyll`, `Ruby` 기반 블로그도 잠깐 고려했는데 커스텀이 힘들 것 같아서 포기했다.
+
+### 간편한 호스팅
+`Vercel`을 처음 사용했는데 사용감이 좋고 빠르고 무료 제공하는 범위가 꽤 넓었다. 간단한 개인 블로그는 무료로 써도 충분하다.
+도메인 붙이기도 쉬워서 이전부터 하고 싶었던 간편한 주소로 지정했다.
+
+## 마치며
+우선 이사를 하고 첫 포스팅을 남기는 감상은.. 아직 IDE로 글쓰기가 익숙하지 않아서 어색하다. 나에게 IDE란 작업 도구였지 글을 쓰는 도구가 아니었다.
+그 외에는 모든게 설레고 좋다. 즐겁게 써야지.
+
