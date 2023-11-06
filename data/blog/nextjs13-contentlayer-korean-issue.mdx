@@ -3,14 +3,14 @@ title: NextJS13 + ContentLayer + 한글 이슈
 date: '2023-11-06 18:00:00'
 tags: ['NextJS', 'ContentLayer', 'Issue']
 draft: false
-summary: NextJS 13부터 swcMinify 옵션 기본값이 True로 바뀌었다
+summary: NextJS13부터 swcMinify 옵션 기본값이 True로 변경됐다.
 ---
 
-# 현상
+# 문제
 
-블로그 첫 글을 게시하려는 순간 빌드 에러가 나서 에러를 처음 인지했다. dev 환경에선 페이지가 정상으로 나왔지만 build 과정에서 에러가 발생했다.
+블로그 첫 글을 게시하려는 CI 과정에서 에러가 발생했다.<br />dev 환경에선 페이지가 정상으로 나왔지만 build 과정에서 에러가 발생했다.
 
-`하`라는 문자열에서 에러가 발생했고 한글이 포함되어 있으면 어떤 위치라도 에러가 발생했다.
+`하`라는 문자열에서 발생했고 한글이 포함되어 있으면 어떤 위치라도 에러가 발생했다.
 
 ```bash
 Generated 3 documents in .contentlayer
@@ -25,18 +25,19 @@ Generated 3 documents in .contentlayer
 
 # 해결
 
-`NextJS13`부터 `swcMinify` 옵션 기본값이 `True`로 변경됐다. 기존 Terser 대비 7배 빠른 성능향상이라고.
+`nextjs.config.js` 파일에서 `swcMinify` 옵션을 `false`로 지정 후 정상 동작을 확인했다.
+
+# 원인
+
+[`NextJS13`부터 `swcMinify` 옵션 기본값이 `True`로 변경됐다.](https://nextjs.org/docs/messages/swc-minify-enabled) 기존 Terser 대비 7배 빠른 성능향상이라고.<br />
 하지만 `Contentlayer`에서 사용할 때 아직 한글 호환이 안되는 것 같다.
-https://nextjs.org/docs/messages/swc-minify-enabled
 
-`swcMinify` 옵션을 `false`로 지정 후 정상 동작을 확인했다.
-
-사용중인 버전 정보를 첨부한다.
 ```
 "next": "13.5.3",
 "next-contentlayer": "0.3.4",
 ```
 
 # 참조 URL
+자료가 딱 하나 나왔다. <br />
 [Next.js에서 contentlayer 사용하여 손쉽게 정적블로그 만들기](https://yiyb-blog.vercel.app/posts/nextjs-contentlayer-blog)
 
