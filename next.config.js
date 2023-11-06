@@ -60,6 +60,8 @@ const securityHeaders = [
 module.exports = () => {
   const plugins = [withContentlayer, withBundleAnalyzer]
   return plugins.reduce((acc, next) => next(acc), {
+    // NextJS 13부터 기본값이 true 인데 ContentLayer 환경에서 한국어 인식 버그 발생
+    swcMinify: false,
     reactStrictMode: true,
     pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
     eslint: {
