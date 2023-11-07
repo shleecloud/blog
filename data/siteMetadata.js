@@ -3,7 +3,7 @@ const siteMetadata = {
   title: 'shlee.cloud',
   author: 'shleecloud',
   headerTitle: 'shlee.cloud',
-  description: 'dev and essay archive',
+  description: '개발과 글쓰기를 좋아합니다',
   language: 'ko-kr',
   theme: 'system', // system, dark or light
   siteUrl: 'https://shlee.cloud',
