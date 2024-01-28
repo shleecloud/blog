@@ -3,3 +3,8 @@
 # [shlee.cloud](https://shlee.cloud)
 Based by [tailwind-nextjs-starter-blog](https://github.com/timlrx/tailwind-nextjs-starter-blog)
 
+# Install
+```
+yarn install
+yarn dev
+```
