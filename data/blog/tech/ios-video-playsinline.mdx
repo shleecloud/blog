@@ -1,0 +1,35 @@
+---
+title: IOS video 재생할 때 자동으로 전체화면 되는 이슈
+date: '2024-3-18 21:00:00'
+tags: ['TroubleShooting', 'IOS']
+draft: false
+summary: video 태그 옵션에 `playsinline` 을 추가한다.
+---
+
+# 문제
+
+IOS 환경에서 동영상을 재생할 때 자동으로 전체 화면이 된다.
+
+---
+
+# 해결
+
+video 태그 옵션에 `playsinline` 을 추가한다.
+
+---
+
+# 원인
+
+IOS에서 화면에 들어가자마자 자동재생을 하기 위해서는 3가지 옵션이 필요하다.
+
+- autoplay
+- muted
+- playsinline
+
+이 중 playsinline 옵션은 IOS 기본 동영상 정책인 전체화면 재생을 인라인 재생으로 바꿔준다.
+
+---
+
+# 참조 URL
+
+[Enable Inline Video Playback](https://developer.apple.com/documentation/webkit/delivering_video_content_for_safari/#3030251)
