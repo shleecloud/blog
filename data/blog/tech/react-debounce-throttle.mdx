@@ -1,0 +1,164 @@
+---
+title: React에서 debounce, throttle을 사용하는 완벽한 방법
+date: '2024-04-01 23:00:00'
+tags: ['React']
+draft: false
+summary: 비동기 버튼 연타 비동기 작업을 막는다
+---
+
+# 들어가며
+
+이전 블로그에서 [React 비동기 작업 중복 실행 방지](https://velog.io/@shleecloud/React-%EB%B9%84%EB%8F%99%EA%B8%B0-%EC%9E%91%EC%97%85-%EC%A4%91%EB%B3%B5-%EC%8B%A4%ED%96%89-%EB%B0%A9%EC%A7%80) 포스팅을 했다.
+요약하자면 throttle과 debounce에 대한 설명 그리고 await 이전과 이후로 상태 변경을 보내는 코드로 비동기 실행을 막았다.
+실제 환경에 적용해서 '어느정도는' 막을 수 있었지만 밀리세컨 단위로 클릭하는 경우 확실하게 막을 수는 없었다.
+이 포스팅은 그 문제에 대한 최근의 답이다.
+
+---
+
+# 왜 상태 갱신으로 막기 힘든가
+
+`상태 갱신` -> `await` -> `상태 갱신` 이 순서로 진행한다.
+
+- 상태 변화를 감지하고 리랜더링을 해야 if문의 차단이 유효하다.
+- 하지만 같은 라인에 한 번 더 상태를 갱신하게 되므로 실질적으로 if문으로 인한 차단은 수행되지 않는다.
+- await가 끝나자마자 버튼을 누르는 경우 두 번 실행된다.
+
+```
+// 실패하는 케이스
+async function asyncRedundantPrevent(state, setState, asyncTask) {
+    // 중복 실행 차단
+    if (state === true) return;
+
+		// Flag 변경
+    setState(true);
+		// 실행 완료까지 대기
+    await asyncTask();
+		// Flag 변경
+    setState(false);
+}
+```
+
+React Hook 라이프사이클에 의존하지 않는 비동기 차단이 필요했고 lodash의 [throttle](https://lodash.com/docs/#throttle)과 [debounce](https://lodash.com/docs/#debounce)로 다시 돌아오게 됐다.
+
+이 글에서 throttle과 debounce 둘 다 상관없지만 [debounce](https://lodash.com/docs/#debounce)를 중점으로 설명하겠다.
+[throttle](https://lodash.com/docs/#throttle)을 원한다면 `{leading: true, tailing: false}` 옵션을 주면 동일하다.
+
+---
+
+# debounce로 막기
+
+debounce는 타이머와 콜백 함수로 이루어져있다. 따라서 상태가 변경되면 리랜더링 과정에서 타이머도 새로 만들어진다. 그래서 실패하는 케이스를 보면 1초 늦게 글이 변경되는 모습을 볼 수 있다.
+
+```js
+const [value, setValue] = useState('')
+const sendRequest = () => {
+  console.log(`❌ Send naive request with: ${value}`)
+}
+
+const debouncedOnChange = _.debounce(sendRequest, 2000)
+
+const onChangeNaive = (e) => {
+  setValue(e.target.value)
+
+  debouncedOnChange()
+}
+```
+
+---
+
+# 절반의 성공 useCallback
+
+완벽하게 동작하고 충분히 훌륭한 코드로 보인다. 하지만 이 코드도 문제가 있다.
+
+매번 비동기 함수마다 `debouncedSendRequest` 같은 함수를 만들어서 호출해야 된다. 코드 가독성도 떨어진다.
+
+```
+const [value, setValue] = useState('');
+const sendRequest = useCallback((value) => {
+  console.log(`✅ Send naive request with: ${value}`);
+}, []);
+
+const debouncedSendRequest = useMemo(() => {
+  return _.debounce(sendRequest, 1000);
+}, [sendRequest]);
+
+const onChange = (e) => {
+  const value = e.target.value;
+  setValue(value);
+
+  debouncedSendRequest(value);
+};
+```
+
+> 여기까지 예제의 [codepen](https://codepen.io/shleecloud/pen/NWmgQKJ) console.log를 주목하자!
+
+---
+
+# 리랜더링을 회피하는 debounce
+
+Javascript 객체는 참조자료형이라는 점이다. useRef는 mutable 하고 참조자료형인 점을 활용해서 useEffect의 조건을 활용하고 참조자료형인 점을 활용해서 최신의 콜백 함수를 갱신한다.
+
+이렇게 최신 함수를 불러올 수 있게 된다면 debounce는 최초 랜더링 될 때 생성되는 useMemo 안에 배치해서 리랜더링을 회피하게 만든다.
+
+그 결과 debounce는 리랜더링을 회피하면서 최신의 함수에 접근할 수 있다.
+
+> [codepen](https://codepen.io/shleecloud/pen/RwOKPWV)에서 직접 확인해보자.
+
+## useDebounce
+
+```js
+const useDebounce = (callback) => {
+  // 변할 수 있는 훅 ref를 선언한다.
+  const ref = useRef()
+
+  // 상태가 변하여 함수가 변한다면 ref를 갱신한다.
+  // ref에 들어간 값이 변하더라도 re-rendering이 되지 않는다.
+  // 따라서 debounce 또는 throttle이 re-rendering 되지 않는다.
+  useEffect(() => {
+    ref.current = callback
+  }, [callback])
+
+  // debounce 함수를 useMemo 훅에 빈배열의 의존성을 할당해 마운트 될 때 한 번 생성한다.
+  const debouncedCallback = useMemo(() => {
+    // func 함수는 마운트 될 때 한 번 생성한다.
+    const func = () => {
+      // ref는 변할 수 있다. mutable하다.
+      // 위의 useEffect로 인하여 ref.current는 최신의 함수를 바라본다.
+      ref.current?.()
+    }
+
+    // debounce 함수는 마운트 될 때 한 번 생성된다.
+    // 하지만 최신의 ref.current 값을 상대 참조하고 있다.
+    return _.debounce(func, 2000)
+    // useMemo의 의존성은 없다. 마운트 될 때 한 번만 생성된다.
+  }, [])
+
+  return debouncedCallback
+}
+```
+
+## 사용 예
+
+```js
+// input
+const [value, setValue] = useState('')
+
+const sendRequestWithState = useDebounce(() => {
+  // send request to the backend
+  // access to latest state here
+  console.log(`✅ Send naive request with: ${value}`)
+})
+
+const onChange = (e) => {
+  const value = e.target.value
+  setValue(value)
+
+  sendRequestWithState()
+}
+```
+
+---
+
+# 참조 URL
+
+[How to debounce and throttle in React without losing your mind](https://adevnadia.medium.com/how-to-debounce-and-throttle-in-react-without-losing-your-mind-4de6193a587)
