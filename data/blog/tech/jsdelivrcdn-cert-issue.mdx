@@ -1,0 +1,56 @@
+---
+title: jsdelivr CDN 인증서 만료 이슈
+date: '2024-5-5 12:00:00'
+tags: ['TroubleShooting']
+draft: false
+summary: 검증 테스트를 했으나 이를 인지하지 못함
+---
+
+## 문제
+
+- 2024년 5월 2일경 CDN 서버에서 인증서 에러가 발생
+- 폰트나 아이콘이 CDN 사용했는데 특정 페이지에서 아이콘의 형태로 구분하는 기능이 있어서 CS 문의가 들어옴
+- jsdelivr Github Issue 페이지에서 피해 사례가 속출
+
+## 해결
+
+- 아이콘은 Material 아이콘이라 npm install로 내장하여 업로드
+- 웹 폰트를 직접 다운로드해서 내장
+
+## 원인
+
+- 10년동안 매년 인증서가 자동으로 갱신됐다.
+
+  - 공급자간 트래픽이 라우팅되는 다중 라우팅 구조여서 Cloudflare DNS 호스팅을 사용할 수 없음
+  - Cloudflare는 CDN 역할만 수행하고 DNS는 다른 곳에서 호스팅되는 특수 설정
+  - Cloudflare가 자동으로 인증서를 발급하고 관리할 수 있도록 타사 DNS 공급자에 적절한 DNS 레코드를 추가하는 기능을 `10년`동안 활용하고 있었음
+
+- Cloudflare가 `DigiCert`의 인증 기관에서 `Google Trust Services`로 변경됐다.
+
+  - Cloudflare는 인증 유효성 검사 이력가 무효화 됐기 때문에 HTTP 유효성 검사로 대체됨
+  - HTTP 유효성 검사는 **인증서를 갱신할 수는 없음**
+
+- 검증 테스트를 했으나 이를 인지하지 못함
+
+  - 테스트를 해도 지역 라우팅으로 인하여 다른 CDN 도메인에 접근해서 잘 되는줄 알았음 (?)
+  - 그로 인해 2020년 이후로 인증서가 갱신되지 않았음
+  - 장애 전 날도 HTTP 유효성 검사로 인증서 갱신을 시도했으나 실패했고 장애가 터졌음
+
+- 지역 라우팅으로 인하여 일부 지역은 영향을 받지 않음
+
+  - 미국, 캐나다, 서유럽, 브라질 및 기타 여러 국가의 사용자는 영향을 받지 않았다.
+  - CDN 제공업체간 라우팅으로 인하여 jsdelivr로 URL로 접근했지만 Fastly CDN 엔드포인트에 도달했기 때문
+
+## 마치며
+
+서비스 장애가 생기면 갑자기 해결되더라도 반드시 원인을 찾아본다.
+이번 이슈는 고작 인증서 만료가 되기엔 규모가 큰 프로젝트라서 그럴 일은 없을 것 같았는데.. 역시나.
+사람 사는 곳은 다 비슷하구나.
+
+> 문제가 가려진다고 문제가 없는 것은 아니다.
+
+## 참조 URL
+
+- [jsdelivr 공식 사후 분석](https://www.jsdelivr.com/blog/jsdelivr-may-outage-postmortem/)
+- [cdn.jsdelivr.net has SSL issue. #18565](https://github.com/jsdelivr/jsdelivr/issues/18565)
+- [GeekNews 게시글](https://news.hada.io/topic?id=14613)
