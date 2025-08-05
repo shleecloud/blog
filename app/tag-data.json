@@ -1,1 +1,21 @@
-{"diary":5,"mac":2,"troubleshooting":4,"flutter":1,"dart":1,"react":1,"ios":1,"homebrew":1,"install":1,"mariadb":1,"mysql":1,"docker":1,"nestjs":1,"database":1,"retrospect":1,"nextjs":1,"contentlayer":1,"issue":1,"blog":1}
+{
+  "diary": 5,
+  "mac": 2,
+  "blog": 1,
+  "troubleshooting": 4,
+  "homebrew": 1,
+  "install": 1,
+  "mariadb": 1,
+  "mysql": 1,
+  "flutter": 1,
+  "dart": 1,
+  "ios": 1,
+  "nextjs": 1,
+  "contentlayer": 1,
+  "issue": 1,
+  "react": 1,
+  "docker": 1,
+  "nestjs": 1,
+  "database": 1,
+  "retrospect": 1
+}
